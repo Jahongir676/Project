@@ -10,7 +10,7 @@ import { ConfigModule } from '@nestjs/config';
     }),
     JwtModule.register({}),
   ],
-  controllers: [CustomJwtService],
   providers: [CustomJwtService],
+  exports: [CustomJwtService],
 })
 export class CustomJwtModule {}

@@ -10,21 +10,21 @@ export class User {
   })
   id: number;
 
-  @Column()
+  @Column({ nullable: true })
   @ApiProperty({
     description: 'First name of the user',
     example: 'John',
   })
   fname: string;
 
-  @Column()
+  @Column({ nullable: true })
   @ApiProperty({
     description: 'Last name of the user',
     example: 'Doe',
   })
   lname: string;
 
-  @Column()
+  @Column({ nullable: true })
   @ApiProperty({
     description: 'Email address of the user',
     example: 'john.doe@example.com',

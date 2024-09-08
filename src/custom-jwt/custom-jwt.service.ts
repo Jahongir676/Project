@@ -1,102 +1,120 @@
-import {
-  Injectable,
-  UnauthorizedException,
-  BadRequestException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class CustomJwtService {
-  private readonly accessTokenSecret = process.env.JWT_ACCESS_KEY;
-  private readonly refreshTokenSecret = process.env.JWT_REFRESH_KEY;
-  private readonly tokenExpiry = process.env.JWT_ACCESS_TIME;
-  private readonly refreshTokenExpiry = process.env.JWT_REFRESH_TIME;
-  private readonly url = process.env.HOST;
-  private readonly expire = process.env.ACTIVE_LINK_TIME;
-
   constructor(private readonly jwtService: JwtService) {}
 
-  // Generate Access and Refresh Tokens
+  /**
+   * Generates both access and refresh tokens.
+   */
+
   generateTokens(payload: any) {
+    const pay = {
+      sub: payload.id, // Subject or user ID
+      role: payload.role, // User role
+      active: payload.active, // User active status
+    };
+
+    // Generate Access Token
+    const accessToken = this.jwtService.sign(pay, {
+      expiresIn: process.env.JWT_ACCESS_TIME,
+      // You may also want to specify the secret here if needed:
+      secret: process.env.JWT_ACCESS_KEY,
+    });
+
+    // Generate Refresh Token
+    const refreshToken = this.jwtService.sign(pay, {
+      secret: process.env.JWT_REFRESH_KEY || 'default-refresh-key', // Specify the refresh secret
+      expiresIn: process.env.JWT_REFRESH_TIME || '18d', // Default to 18 days
+    });
+
+    return {
+      sub: payload.id, // Return the user ID
+      accessToken, // Return the access token
+      refreshToken, // Return the refresh token
+    };
+  }
+
+  /**
+   * Generates an activation token.
+   */
+  generateActivationToken(payload: any) {
+    return this.jwtService.sign(
+      { sub: payload.id },
+      {
+        secret: process.env.JWT_ACTIVATION_KEY,
+        expiresIn: process.env.JWT_ACTIVATION_TIME || '3m',
+      },
+    );
+  }
+
+  /**
+   * Verifies the validity of an access token.
+   */
+  verifyAccessToken(token: string): any {
     try {
-      const accessToken = this.jwtService.sign(payload, {
-        secret: this.accessTokenSecret,
-        expiresIn: this.tokenExpiry,
+      return this.jwtService.verify(token, {
+        secret: process.env.JWT_ACCESS_KEY,
       });
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
+  }
 
-      const refreshToken = this.jwtService.sign(payload, {
-        secret: this.refreshTokenSecret,
-        expiresIn: this.refreshTokenExpiry,
+  /**
+   * Verifies the validity of a refresh token.
+   */
+  verifyRefreshToken(token: string): any {
+    try {
+      return this.jwtService.verify(token, {
+        secret: process.env.JWT_REFRESH_KEY,
       });
-
-      return { accessToken, refreshToken };
-    } catch (error) {
-      console.error('Token generation error:', error);
-      throw new BadRequestException('Failed to generate tokens');
+    } catch (e) {
+      console.log(e);
+      throw new BadRequestException('Token is expired');
     }
   }
 
-  // Generate an active link (email confirmation or password reset)
-  generateActiveLink(payload: any, tokenType: 'confirm' | 'reset') {
+  /**
+   * Verifies the validity of an activation token.
+   */
+  verifyActivationToken(token: string): any {
     try {
-      const secret =
-        tokenType === 'confirm'
-          ? this.accessTokenSecret
-          : this.refreshTokenSecret;
-
-      const token = this.jwtService.sign(payload, {
-        secret: secret,
-        expiresIn: this.expire,
+      return this.jwtService.verify(token, {
+        secret: process.env.JWT_ACTIVATION_KEY,
       });
-
-      return `${this.url}?token=${token}`;
-    } catch (error) {
-      console.error('Active link generation error:', error);
-      throw new BadRequestException('Failed to generate active link');
+    } catch (e) {
+      console.log(e);
+      throw new BadRequestException('Token is expired!');
     }
   }
 
-  // Verify Tokens (both access and refresh tokens)
-  verifyToken(token: string, isRefreshToken = false): any {
-    try {
-      const secret = isRefreshToken
-        ? this.refreshTokenSecret
-        : this.accessTokenSecret;
-
-      return this.jwtService.verify(token, { secret });
-    } catch (error) {
-      if (error.name === 'TokenExpiredError') {
-        throw new UnauthorizedException('Token has expired');
-      } else if (error.name === 'JsonWebTokenError') {
-        throw new UnauthorizedException('Invalid token');
-      } else {
-        console.error('Token verification error:', error);
-        throw new BadRequestException('Failed to verify token');
-      }
-    }
+  /**
+   * Generates a password reset token.
+   */
+  generatePasswordResetToken(payload: any) {
+    return this.jwtService.sign(
+      { sub: payload.id },
+      {
+        secret: process.env.JWT_PASSWORD_RESET_KEY,
+        expiresIn: process.env.JWT_PASSWORD_RESET_TIME || '15m',
+      },
+    );
   }
 
-  // Verify Email Token (email confirmation)
-  verifyEmailToken(token: string): any {
+  /**
+   * Verifies the validity of a password reset token.
+   */
+  verifyPasswordResetToken(token: string): any {
     try {
-      return this.verifyToken(token);
-    } catch (error) {
-      console.error('Email token verification error:', error);
-      throw new UnauthorizedException(
-        'Invalid or expired email confirmation token',
-      );
-    }
-  }
-
-  // Verify Reset Token (password reset)
-  verifyResetToken(token: string): any {
-    try {
-      return this.verifyToken(token, true);
-    } catch (error) {
-      console.error('Password reset token verification error:', error);
-      throw new UnauthorizedException(
-        'Invalid or expired password reset token',
-      );
+      return this.jwtService.verify(token, {
+        secret: process.env.JWT_PASSWORD_RESET_KEY,
+      });
+    } catch (e) {
+      console.log(e);
+      throw new BadRequestException('Token is expired!');
     }
   }
 }

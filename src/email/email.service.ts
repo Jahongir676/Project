@@ -40,7 +40,6 @@ export class EmailService {
   }
 
   private compileTemplate(templateName: string, context: any): string {
-    // Update to point to the correct template directory
     const filePath = join(
       __dirname,
       '..',
@@ -54,7 +53,10 @@ export class EmailService {
       const template = Handlebars.compile(source);
       return template(context);
     } catch (error) {
-      this.logger.error(`Error reading template: ${filePath}`, error);
+      this.logger.error(
+        `Error reading or compiling template: ${filePath}`,
+        error,
+      );
       throw new InternalServerErrorException('Template rendering failed');
     }
   }
@@ -68,9 +70,8 @@ export class EmailService {
     try {
       const html = this.compileTemplate(templateName, context);
 
-      // Set the sender's name and email
-      const senderName = 'Online-Food'; // Change this to your desired name
-      const senderEmail = process.env.MAIL_FROM || process.env.MAIL_USER;
+      const senderName = 'Online-Food'; // Sender name, change as needed
+      const senderEmail = process.env.MAIL_FROM || process.env.MAIL_USER; // Fallback to MAIL_USER if MAIL_FROM is not provided
 
       const mailOptions = {
         from: `"${senderName}" <${senderEmail}>`, // Format: "Name" <email>
@@ -80,7 +81,7 @@ export class EmailService {
       };
 
       const info = await this.transporter.sendMail(mailOptions);
-      this.logger.log(`Email sent: ${info.messageId}`);
+      this.logger.log(`Email sent successfully: ${info.messageId}`);
     } catch (error) {
       this.logger.error(`Failed to send email: ${error.message}`, error.stack);
       throw new InternalServerErrorException('Failed to send email');

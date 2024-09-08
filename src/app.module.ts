@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { CustomJwtModule } from './custom-jwt/custom-jwt.module';
 import { EmailModule } from './email/email.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { EmailModule } from './email/email.module';
     UsersModule,
     CustomJwtModule,
     EmailModule,
+    AdminModule,
   ],
   controllers: [],
   providers: [],

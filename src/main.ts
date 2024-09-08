@@ -9,6 +9,12 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   // Kuki sozlamalari
   app.use(cookieParser());
+  app.enableCors({
+    origin: '*', // Change to your frontend's origin
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: 'Content-Type, Accept, Authorization, Custom-Header', // Ensure Authorization is included
+    credentials: true, // Optional: Include if you're using cookies or credentials
+  });
 
   // Validatatsiya sozlamalasi
   app.useGlobalPipes(
