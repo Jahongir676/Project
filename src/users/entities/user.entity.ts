@@ -38,19 +38,27 @@ export class User {
   })
   password: string;
 
-  @Column()
+  @Column({ nullable: true })
   @ApiProperty({
     description: 'User birthday in YYYY-MM-DD format',
     example: '1990-01-01',
     type: String,
     format: 'date',
   })
-  birthday: Date;
+  birthdate: Date;
 
-  @Column({ default: true })
+  @Column({ nullable: true })
+  @ApiProperty({
+    description: 'User region',
+    example: 'Namangan',
+    type: String,
+  })
+  region: string;
+
+  @Column({ default: false })
   @ApiProperty({
     description: 'Indicates if the user account is active',
-    example: true,
+    example: false,
   })
   is_active: boolean;
 
