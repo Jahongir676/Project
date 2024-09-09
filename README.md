@@ -1,5 +1,10 @@
 ## Rent-Car Application
 
+## launch the project
+
+Create an `.env` file and write variables in it according to the template in the `example.env` file
+if not `pnpm`, set it
+
 ## Project setup
 
 ```bash
@@ -18,8 +23,3 @@
 # production mode
  pnpm run start:prod
 ```
-
-## loyihani ishga tushirish
-
-`.env` fayl yarating va ichiga example.env fayldagi qolipga moslab o'zgaruvchilar yozing
-agar `pnpm` bo'lmasa, o'rnating

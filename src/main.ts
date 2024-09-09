@@ -4,19 +4,21 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
 import { ValidationPipe } from '@nestjs/common';
 import { env } from 'process';
+import { ThrottlerExceptionFilter } from './common/utils/throttler-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
   // Kuki sozlamalari
   app.use(cookieParser());
   app.enableCors({
     origin: '*', // Change to your frontend's origin
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: 'Content-Type, Accept, Authorization, Custom-Header', // Ensure Authorization is included
-    credentials: true, // Optional: Include if you're using cookies or credentials
+    allowedHeaders: 'Content-Type, Accept, Authorization, Custom-Header',
+    credentials: true,
   });
 
-  // Validatatsiya sozlamalasi
+  // Validatsiya sozlamalari
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -24,6 +26,11 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  // Global Filter
+  app.useGlobalFilters(new ThrottlerExceptionFilter());
+
+  // Global Guard
 
   // Swagger sozlamalari
   const config = new DocumentBuilder()

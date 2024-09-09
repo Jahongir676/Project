@@ -1,46 +1,48 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { Car } from '../../car/entities/car.entity'; // Car entity'sini import qilish
+import { Comment } from '../../comment/entities/comment.entity'; // Comment entity'sini import qilish
 
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
   @ApiProperty({
-    description: 'Unique identifier for the user',
+    description: 'Foydalanuvchi uchun noyob identifikator',
     example: 1,
   })
   id: number;
 
   @Column({ nullable: true })
   @ApiProperty({
-    description: 'First name of the user',
+    description: 'Foydalanuvchining ismi',
     example: 'John',
   })
   fname: string;
 
   @Column({ nullable: true })
   @ApiProperty({
-    description: 'Last name of the user',
+    description: 'Foydalanuvchining familiyasi',
     example: 'Doe',
   })
   lname: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, unique: true }) // Elektron pochta manzili noyob bo'lishi kerak
   @ApiProperty({
-    description: 'Email address of the user',
+    description: 'Foydalanuvchining elektron pochta manzili',
     example: 'john.doe@example.com',
   })
   email: string;
 
   @Column()
   @ApiProperty({
-    description: 'Password for the user account',
+    description: 'Foydalanuvchi hisobining paroli',
     example: 'P@ssw0rd!',
   })
   password: string;
 
   @Column({ nullable: true })
   @ApiProperty({
-    description: 'User birthday in YYYY-MM-DD format',
+    description: 'Foydalanuvchining tugʻilgan sanasi (YYYY-MM-DD formatida)',
     example: '1990-01-01',
     type: String,
     format: 'date',
@@ -49,7 +51,7 @@ export class User {
 
   @Column({ nullable: true })
   @ApiProperty({
-    description: 'User region',
+    description: 'Foydalanuvchining mintaqasi',
     example: 'Namangan',
     type: String,
   })
@@ -57,14 +59,15 @@ export class User {
 
   @Column({ default: false })
   @ApiProperty({
-    description: 'Indicates if the user account is active',
+    description: "Foydalanuvchi hisobining faoliyatini ko'rsatadi",
     example: false,
   })
   is_active: boolean;
 
   @Column({ nullable: true })
   @ApiProperty({
-    description: 'Refresh token for user authentication (optional)',
+    description:
+      'Foydalanuvchining autentifikatsiyasi uchun refreshtoken (ixtiyoriy)',
     example: 'refresh-token-value',
     required: false,
   })
@@ -72,14 +75,26 @@ export class User {
 
   @Column({ default: false })
   @ApiProperty({
-    description: 'Indicates if the user is a super admin',
+    description: "Foydalanuvchi super admin ekanligini ko'rsatadi",
     example: false,
   })
   is_super: boolean;
+
   @Column({ default: false })
   @ApiProperty({
-    description: 'Indicates if the user has admin privileges',
+    description:
+      "Foydalanuvchining admin huquqlariga ega ekanligini ko'rsatadi",
     example: true,
   })
   admin: boolean;
+
+  @OneToMany(() => Car, (car) => car.user, { cascade: true }) // Mashinalar bilan bog'lanish
+  @ApiProperty({
+    description: 'Foydalanuvchiga tegishli mashinalar',
+    type: () => [Car], // Lazy resolver
+  })
+  cars: Car[];
+
+  @OneToMany(() => Comment, (comment) => comment.user, { cascade: true })
+  comments: Comment[];
 }
