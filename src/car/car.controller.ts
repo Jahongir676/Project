@@ -7,15 +7,14 @@ import {
   Param,
   Delete,
   Query,
-  Req,
   UploadedFile,
   UseInterceptors,
   UseGuards,
+  Headers,
 } from '@nestjs/common';
 import { CarService } from './car.service';
 import { CreateCarDto } from './dto/create-car.dto';
 import { UpdateCarDto } from './dto/update-car.dto';
-import { Request } from 'express';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -41,13 +40,14 @@ export class CarController {
     description: 'Mashina muvaffaqiyatli yaratildi.',
   })
   @ApiResponse({ status: 401, description: 'Noto‘g‘ri kirish' })
-  async create(@Body() createCarDto: CreateCarDto, @Req() req: Request) {
-    const token = req.headers['authorization']?.replace('Bearer ', '');
+  async create(
+    @Body() createCarDto: CreateCarDto,
+    @Headers('Authorization') token: string,
+  ) {
     return this.carService.addCar(createCarDto, token);
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard) // Protect this route with the guard
   @ApiOperation({ summary: 'Barcha mashinalarni olish' })
   @ApiResponse({
     status: 200,
@@ -118,7 +118,6 @@ export class CarController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard) // Protect this route with the guard
   @ApiOperation({ summary: "Mashinani ID bo'yicha topish" })
   @ApiResponse({ status: 200, description: 'Mashina muvaffaqiyatli topildi.' })
   @ApiResponse({ status: 404, description: 'Mashina topilmadi!' })
@@ -141,9 +140,8 @@ export class CarController {
   async update(
     @Param('id') id: string,
     @Body() updateCarDto: UpdateCarDto,
-    @Req() req: Request,
+    @Headers('Authorization') token: string,
   ) {
-    const token = req.headers['authorization']?.replace('Bearer ', '');
     return this.carService.updateCar(+id, updateCarDto, token);
   }
 
@@ -157,8 +155,11 @@ export class CarController {
   })
   @ApiResponse({ status: 404, description: 'Mashina topilmadi!' })
   @ApiParam({ name: 'id', description: 'Mashinani ID raqami' })
-  async remove(@Param('id') id: string) {
-    return this.carService.remove(+id);
+  async remove(
+    @Param('id') id: string,
+    @Headers('Authorization') token: string,
+  ) {
+    return this.carService.remove(+id, token);
   }
 
   @Post(':id/photo')

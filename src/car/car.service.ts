@@ -38,7 +38,6 @@ export class CarService {
     }
   }
 
-  // Add a new car
   async addCar(addCar: CreateCarDto, token: string) {
     const { id } = await this.verifyToken(token);
     const user = await this.userRepo.findOneBy({ id });
@@ -58,8 +57,8 @@ export class CarService {
   // Update a car, ensuring only the owner can update it
   async updateCar(id: number, updateCarDto: UpdateCarDto, token: string) {
     // Decode the token to get the user ID
-    const { id: userId } = await this.verifyToken(token);
-
+    const data = await this.verifyToken(token);
+    const userId = data.id;
     // Find the car by ID
     const car = await this.carRepo.findOne({
       where: { id },
@@ -155,10 +154,20 @@ export class CarService {
     });
   }
 
-  // Remove car by ID
-  async remove(id: number) {
-    const car = await this.carRepo.findOne({ where: { id } });
+  async remove(id: number, token: string) {
+    const data = await this.verifyToken(token);
+    const userId = data?.id;
+    // Find the car by ID
+    const car = await this.carRepo.findOne({
+      where: { id },
+      relations: ['user'],
+    });
+
+    if (car.user.id !== userId)
+      throw new ForbiddenException('Sizda bunday ruxsat yo`q!');
+
     if (!car) throw new NotFoundException('Car not found!');
+
     await this.carRepo.remove(car);
     return { message: 'Car removed successfully!' };
   }

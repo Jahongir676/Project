@@ -8,7 +8,7 @@ import { ThrottlerExceptionFilter } from './common/utils/throttler-exception.fil
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
+  app.setGlobalPrefix('api');
   // Kuki sozlamalari
   app.use(cookieParser());
   app.enableCors({
@@ -40,7 +40,7 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('api/docs', app, document);
 
   await app.listen(env.PORT, () => {
     console.warn('Listening on ' + env.PORT);
