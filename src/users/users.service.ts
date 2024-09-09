@@ -27,27 +27,36 @@ export class UsersService {
 
   // Foydalanuvchini login qilish
   async login(login: LoginUserDto, res: Response) {
-    const user = await this.userRepository.findOneBy({ email: login.email });
+    try {
+      const user = await this.userRepository.findOneBy({ email: login.email });
 
-    if (!user || !(await bcrypt.compare(login.password, user.password))) {
-      throw new NotFoundException('Email topilmadi yoki parol xato');
+      if (!user) {
+        throw new UnauthorizedException('Email topilmadi yoki parol xato');
+      }
+
+      const passwordMatch = await bcrypt.compare(login.password, user.password);
+      if (!passwordMatch) {
+        throw new UnauthorizedException('Email topilmadi yoki parol xato');
+      }
+
+      // Tokenlarni generatsiya qilish
+      const tokens = this.jwtService.generateTokens(user);
+
+      user.refreshtoken = await bcrypt.hash(tokens.refreshToken, 10);
+      await this.userRepository.save(user);
+
+      // Refresh tokenni cookiega saqlash
+      res.cookie('refreshToken', tokens.refreshToken, {
+        httpOnly: true,
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 kun
+      });
+      return {
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+      };
+    } catch (error) {
+      console.log(error);
     }
-
-    // Tokenlarni generatsiya qilish
-    const tokens = this.jwtService.generateTokens(user);
-
-    // Refresh tokenni hash qilib saqlash
-    user.refreshtoken = await bcrypt.hash(tokens.refreshToken, 10);
-    await this.userRepository.save(user);
-
-    // Refresh tokenni cookiega saqlash
-    res.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      secure: true, // Yaltiroq muhitda HTTPS bo'lishi kerak
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 15 kun
-    });
-
-    return tokens; // Access va refresh tokenlarni qaytarish
   }
 
   // Yangi foydalanuvchini ro'yxatdan o'tkazish
@@ -239,7 +248,7 @@ export class UsersService {
 
     // Parolni tiklash tokenini generatsiya qilish
     const token = this.jwtService.generatePasswordResetToken(user);
-    const resetLink = `${env.active_link}${token}`;
+    const resetLink = `http://localhost:4000/api/users/reset-password?token=${token}`;
 
     // Parolni tiklash emailini jo'natish
     await this.emailService.sendMail(
@@ -248,21 +257,22 @@ export class UsersService {
       'reset-password',
       { resetLink },
     );
+    console.log(resetLink);
 
     return { message: 'Emailingiz habar yuborildi!' };
   }
 
   // Parolni tiklash (Reset Password)
-  async resetPassword(token: string, newPassword: string): Promise<void> {
+  async resetPassword(token: string, newPassword: string) {
     const payload = this.jwtService.verifyPasswordResetToken(token);
     const user = await this.userRepository.findOneBy({ id: payload.sub });
 
-    if (!user) {
-      throw new NotFoundException('Foydalanuvchi topilmadi');
-    }
+    if (!user) throw new NotFoundException('Foydalanuvchi topilmadi');
 
     // Yangi parolni hash qilish va saqlash
     user.password = await bcrypt.hash(newPassword, 10);
     await this.userRepository.save(user);
+
+    return { message: 'Parolingiz yangilandi! ' };
   }
 }

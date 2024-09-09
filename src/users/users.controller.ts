@@ -235,7 +235,7 @@ export class UsersController {
   }
 
   // Yangi parolni o'rnatish
-  @Post('reset-password')
+  @Get('reset-password')
   @ApiConsumes('application/json')
   @ApiOperation({
     summary: "Yangi parolni o'rnatish",

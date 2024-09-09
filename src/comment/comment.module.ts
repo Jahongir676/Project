@@ -5,9 +5,10 @@ import { CommentController } from './comment.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Comment } from './entities/comment.entity';
 import { User } from '../users/entities/user.entity';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Comment, User, Car])],
+  imports: [TypeOrmModule.forFeature([Comment, User, Car]), JwtModule],
   controllers: [CommentController],
   providers: [CommentService],
 })

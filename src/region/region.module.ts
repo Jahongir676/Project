@@ -4,9 +4,10 @@ import { RegionController } from './region.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Region } from './entities/region.entity';
 import { District } from '../district/entities/district.entity';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Region, District])],
+  imports: [TypeOrmModule.forFeature([Region, District]), JwtModule],
   controllers: [RegionController],
   providers: [RegionService],
 })

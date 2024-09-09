@@ -28,12 +28,10 @@ export class Comment {
 
   @ManyToOne(() => User, (user) => user.comments)
   @JoinColumn({ name: 'user_id' })
-  @ApiProperty({ description: 'Sharhni yozgan foydalanuvchi' })
   user: User;
 
   @ManyToOne(() => Car, (car) => car.comments)
   @JoinColumn({ name: 'car_id' })
-  @ApiProperty({ description: 'Sharh yozilgan mashina' })
   car: Car;
 
   @CreateDateColumn({ type: 'timestamp' })

@@ -44,12 +44,17 @@ export class DistrictService {
 
     if (name) where.name = Like(`%${name}%`);
 
-    return this.districtRepo.find({ where });
+    return this.districtRepo.find({ where, relations: ['region'] });
   }
 
   async findOne(id: number) {
-    const district = await this.districtRepo.findOneBy({ id });
-    if (district) throw new NotFoundException('Bunday tuman topilmadi!');
+    const district = await this.districtRepo.findOne({
+      where: { id },
+      relations: ['region'], // Include the region relation
+    });
+    if (!district) {
+      throw new NotFoundException('Bunday tuman topilmadi!'); // Adjusted condition
+    }
     return district;
   }
 

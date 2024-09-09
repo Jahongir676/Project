@@ -70,7 +70,7 @@ export class EmailService {
     try {
       const html = this.compileTemplate(templateName, context);
 
-      const senderName = 'Online-Food'; // Sender name, change as needed
+      const senderName = 'Rent Car Service'; // Sender name, change as needed
       const senderEmail = process.env.MAIL_FROM || process.env.MAIL_USER; // Fallback to MAIL_USER if MAIL_FROM is not provided
 
       const mailOptions = {
@@ -86,5 +86,19 @@ export class EmailService {
       this.logger.error(`Failed to send email: ${error.message}`, error.stack);
       throw new InternalServerErrorException('Failed to send email');
     }
+  }
+
+  async sendCarOwnerNotification(email: string, bron: any): Promise<void> {
+    const subject = 'Yangi bronlash haqida xabar';
+    const templateName = 'car-owner-notification'; // The HBS template name
+    const context = {
+      carId: bron.car_id.id,
+      clientName: bron.client_id.name, // Assuming client_id has a name property
+      startDate: bron.start_Date.toISOString().split('T')[0], // Format date as needed
+      endDate: bron.end_date.toISOString().split('T')[0],
+      totalPrice: bron.total_price,
+    };
+
+    await this.sendMail(email, subject, templateName, context);
   }
 }

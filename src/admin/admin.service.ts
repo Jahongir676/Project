@@ -34,7 +34,11 @@ export class AdminService {
       admin: true,
     });
 
-    const savedAdmin = await this.adminRepo.save(newAdmin);
+    const savedAdmin = await this.adminRepo.save({
+      id: newAdmin.id,
+      email: newAdmin.email,
+      admin: newAdmin.admin,
+    });
     const token = this.jwtService.generateTokens({
       id: savedAdmin.id,
       email: savedAdmin.email,
@@ -58,6 +62,7 @@ export class AdminService {
     const token = this.jwtService.generateTokens({
       id: admin.id,
       email: admin.email,
+      admin: admin.admin,
     });
 
     return {
